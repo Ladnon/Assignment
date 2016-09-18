@@ -1,0 +1,108 @@
+---
+title: 'Course Project 1: Exploratory Course'
+author: "Martin Mason"
+date: "17 September 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+####Downloading the Data
+
+```{r cahce=TRUE}
+
+pathToData <- paste(getwd(), "/data/originalData.zip", sep="")
+if(!dir.exists("data")){
+        dir.create("data")
+        if(!file.exists(pathToData)){
+                download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip", pathToData, method="curl")
+        }
+}else{
+        if(!file.exists(pathToData)){
+                 download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip", pathToData, method="curl")
+        }
+}
+unzipped <- unzip(pathToData)
+```
+
+####Reading data
+```{r cache = TRUE}
+rawData <- read.table(unzipped, header= TRUE, sep=";")
+head(rawData)
+```
+####Subsetting & numeric conversion
+```{r cache=TRUE}
+library(dplyr)
+
+subset <- filter(rawData, Date == "1/2/2007" | Date == "2/2/2007")
+
+head(subset)
+```
+
+##Plot 1 - Global Active Power
+```{r cache=TRUE}
+subset$Global_active_power <- 2*as.numeric(subset$Global_active_power)
+
+hist(subset$Global_active_power, breaks = 14, col = "red", main = "Global Active Power", xlab = "Global Active Power(kilowatts)")
+dev.copy(png, file = "plot1.png")
+dev.off()
+```
+
+##Plot 2 - Global Active Power , Days
+```{r cache=TRUE}
+positions <- c(1,700,1400)
+days <- c("Thu", "Fri", "Sat")
+plot(subset$Time, subset$Global_active_power, xaxt="n", ylab = "Global Active Power(kilowatts)", lwd=.5)
+axis(1, at = positions, labels = days)
+dev.copy(png, file = "plot2.png")
+dev.off()
+```
+
+##Plot 3
+
+```{r cache = TRUE}
+positions <- c(1,700,1400)
+days <- c("Thu", "Fri", "Sat")
+subset$Sub_metering_1 <- as.numeric(subset$Sub_metering_1)
+subset$Sub_metering_2 <- as.numeric(subset$Sub_metering_2)
+subset$Sub_metering_3 <- as.numeric(subset$Sub_metering_3)
+plot(subset$Time, subset$Sub_metering_1, xaxt="n")
+lines(subset$Sub_metering_2, col = "blue")
+lines(subset$Sub_metering_3, col = "red")
+legend("topright", legend=c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"),
+       col=c("black", "red", "blue"), lty=1:2, cex=0.8)
+axis(1, at = positions, labels = days)
+dev.copy(png, file = "plot3.png")
+dev.off()
+```
+
+##Plot 4
+
+```{r cache=TRUE}
+par(mfrow = c(2,2))
+positions <- c(1,700,1400)
+days <- c("Thu", "Fri", "Sat")
+subset$Voltage <- as.numeric(subset$Voltage)
+plot(subset$Time, subset$Global_active_power, xaxt="n", ylab = "Global Active Power")
+axis(1, at = positions, labels = days)
+plot(subset$Time, subset$Voltage, xaxt="n", ylab = "Voltage", xlab = "datetime")
+axis(1, at = positions, labels = days)
+subset$Sub_metering_1 <- as.numeric(subset$Sub_metering_1)
+subset$Sub_metering_2 <- as.numeric(subset$Sub_metering_2)
+subset$Sub_metering_3 <- as.numeric(subset$Sub_metering_3)
+plot(subset$Time, subset$Sub_metering_1, xaxt="n", ylab = "Energy sub metering")
+lines(subset$Sub_metering_2, col = "blue")
+lines(subset$Sub_metering_3, col = "red")
+legend("topright", legend=c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"),
+       col=c("black", "red", "blue"), lty=1:2, cex=0.8)
+axis(1, at = positions, labels = days)
+subset$Global_reactive_power <- as.numeric(subset$Global_reactive_power)
+plot(subset$Time, subset$Global_reactive_power, xaxt="n", ylab = "Global_reactive_power", xlab = "datetime")
+axis(1, at = positions, labels = days)
+dev.copy(png, file = "plot4.png")
+dev.off()
+```
